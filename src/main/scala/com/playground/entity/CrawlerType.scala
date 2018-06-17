@@ -6,6 +6,4 @@ object CrawlerType extends Enumeration {
   }
 
   case object Bloter extends CrawlerInfo("Bloter")
-
-
 }

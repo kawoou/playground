@@ -1,29 +1,29 @@
 package com.playground.route
 
-import com.playground.ApplicationComponentImpl
-import com.playground.entity.MailSendRequest
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.model.StatusCodes
+import com.playground.context.ActorContextComponentImpl
+import com.playground.route.actor.{ListMailActor, SendMailActor, SendMailRequest}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
-import scala.util.{Failure, Success}
 
-object MailRoute extends AbstractRoute with DefaultJsonProtocol with SprayJsonSupport with ApplicationComponentImpl {
-  implicit val mailSendRequest: RootJsonFormat[MailSendRequest] = jsonFormat3(MailSendRequest.apply)
+object MailRoute extends AbstractRoute with ActorContextComponentImpl with DefaultJsonProtocol with SprayJsonSupport {
+  import actorContext._
 
+  // Private
+  private implicit val mailSendRequestFormat: RootJsonFormat[SendMailRequest] = jsonFormat3(SendMailRequest.apply)
+
+  // Public
   val routes: Route = pathPrefix("mail") {
     pathEnd {
       (get & parameter("page" ? "0")) { page =>
-        onComplete(application.mailService.getList(0, 20)) {
-          case Success(value) => complete(s"${value}")
-          case Failure(ex) => complete((StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}"))
+        actorRoute {
+          new ListMailActor(page.toInt, 20, _)
         }
       } ~
-      (post & entity(as[MailSendRequest])) { mailSendRequest =>
-        complete {
-          mailSendRequest.name
+      (post & entity(as[SendMailRequest])) { request =>
+        actorRoute {
+          new SendMailActor(request, _)
         }
       }
     }
