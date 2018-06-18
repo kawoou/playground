@@ -9,14 +9,14 @@ import com.playground.service.MailService
 import scala.concurrent.duration._
 import scala.concurrent.Promise
 
-class ListMailActor(page: Int, count: Int, val request: RequestContext, val promise: Promise[RouteResult])(implicit val application: Application) extends AbstractRouteActor {
+class ViewMailActor(id: Long, val request: RequestContext, val promise: Promise[RouteResult])(implicit val application: Application) extends AbstractRouteActor {
   context.setReceiveTimeout(2.seconds)
 
-  application.mailService ! MailService.Command.Gets(page, 20, self)
+  application.mailService ! MailService.Command.GetByID(id, self)
 
   override def receive = {
-    case MailRepository.Result.Gets(mails) =>
-      complete(OK, mails.toString())
+    case MailRepository.Result.Get(mail) =>
+      complete(OK, mail.toString())
 
     case _ => super.receive
   }
