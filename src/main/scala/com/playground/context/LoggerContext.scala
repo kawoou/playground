@@ -11,10 +11,10 @@ trait LoggerContextComponent {
   }
 }
 
-trait LoggerContextComponentImpl extends LoggerContextComponent {
-  val loggerContext: LoggerContext = LoggerContext
+trait DefaultLoggerContextComponent extends LoggerContextComponent {
+  override lazy val loggerContext: LoggerContext = new LoggerContext
 
-  object LoggerContext extends super.LoggerContext {
+  class LoggerContext extends super.LoggerContext {
     implicit val logger: Logger = LoggerFactory.getLogger(Boot.getClass)
   }
 }

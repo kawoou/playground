@@ -8,14 +8,13 @@ import akka.http.scaladsl.server.{RequestContext, RouteResult}
 import scala.concurrent.Promise
 
 trait AbstractRouteActor extends Actor with ActorLogging {
-  implicit def request: RequestContext
-  val promise: Promise[RouteResult] = Promise[RouteResult]
+  val promise: Promise[RouteResult]
 
-  import context._
+  implicit val request: RequestContext
+  implicit val ec = request.executionContext
 
   def complete(m: => ToResponseMarshallable): Unit = {
-    val f = request.complete(m)
-    f.onComplete(promise.complete)
+    request.complete(m).onComplete(promise.complete)
     context.stop(self)
   }
 

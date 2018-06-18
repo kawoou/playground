@@ -1,16 +1,23 @@
 package com.playground
 
-import com.playground.context.{ActorContextComponentImpl, ConfigContextComponentImpl}
+import akka.actor.Props
+import com.playground.context._
+import com.playground.service.MailService
+import com.playground.repository.MailRepository
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-object Boot extends App with ConfigContextComponentImpl with ActorContextComponentImpl {
+object Boot extends App {
   println(s"Current time = ${System.currentTimeMillis}")
 
-  val server = new WebServer()
+  implicit val application: Application = new DefaultApplication
+  
+  import application.actorContext._
+
+  val server = new WebServer
 
   sys.addShutdownHook {
-    val future = actorContext.system.terminate()
+    val future = system.terminate()
     Await.result(future, 60.seconds)
   }
 }

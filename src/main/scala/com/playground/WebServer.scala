@@ -2,15 +2,14 @@ package com.playground
 
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
-import com.playground.context.{ActorContextComponentImpl, ConfigContextComponentImpl}
 import com.playground.route.MailRoute
 import scala.concurrent.Future
 
-class WebServer extends ConfigContextComponentImpl with ActorContextComponentImpl {
-  import actorContext._
-  import configContext.config
+class WebServer(implicit val application: Application) {
+  import application.actorContext._
+  import application.configContext.config
 
-  val routes = MailRoute.routes
+  val routes = new MailRoute().routes
 
   val interface = config.getString("http.interface")
   val port = config.getInt("http.port")

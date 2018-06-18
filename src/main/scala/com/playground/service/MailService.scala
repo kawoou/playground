@@ -1,10 +1,12 @@
 package com.playground.service
 
-import akka.actor.{Actor, ActorLogging, Props}
-import com.playground.context.ActorContextComponentImpl
+import java.util.UUID
+import akka.actor.{Actor, ActorRef, ActorLogging, Props}
+import com.playground.Application
 import com.playground.entity.table.Mail
 import com.playground.repository.MailRepository
 import com.playground.service.MailService.{Command, Event, Result}
+import scala.collection.mutable
 
 object MailService {
   object Command {
@@ -23,16 +25,25 @@ object MailService {
   }
 }
 
-class MailService extends Actor with ActorLogging with ActorContextComponentImpl {
-  import actorContext._
+class MailService(implicit val application: Application) extends Actor with ActorLogging {
+  import application.actorContext._
 
   // Private
-  private val mailRepository = system.actorOf(Props[MailRepository], "MailRepository")
+  private val mailRepository = system.actorOf(Props(new MailRepository))
+
+  val sendersTable = collection.mutable.Map[String, Set[ActorRef]]()
 
   // Public
   def receive = {
     /// Request
     case Command.Gets(page, count) =>
+      val key = s"GETS_${page}_${count}"
+      val senders = sendersTable get key
+      if (senders.isEmpty) {
+        sendersTable += (key -> Set.empty[ActorRef])
+      }
+      sendersTable(key) += sender
+      
       mailRepository ! MailRepository.Command.Gets(page, count)
 
     case Command.GetByID(id) =>
@@ -42,11 +53,13 @@ class MailService extends Actor with ActorLogging with ActorContextComponentImpl
       mailRepository ! MailRepository.Command.Add(mail)
 
     /// MailRepository
-    case MailRepository.Result.Gets(mails) =>
-      val sender = context.sender
-      sender ! Result.Gets(mails)
+    case MailRepository.Result.Gets(page, count, mails) =>
+      val key = s"GETS_${page}_${count}"
 
-    case MailRepository.Result.Get(mail) =>
+      sendersTable(key) foreach(_ ! Result.Gets(mails))
+      sendersTable -= key
+
+    case MailRepository.Result.Get(id, mail) =>
       val sender = context.sender
       sender ! Result.Get(mail)
 

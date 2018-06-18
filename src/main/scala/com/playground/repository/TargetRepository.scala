@@ -1,6 +1,6 @@
 package com.playground.repository
 
-import com.playground.context.{ActorContextComponentImpl, ConfigContextComponentImpl, SlickContextComponentImpl}
+import com.playground.Application
 import com.playground.entity.table.{Target, TargetTable}
 import com.playground.repository.TargetRepository.{Command, Event, Result}
 import akka.actor.{Actor, ActorLogging}
@@ -25,9 +25,9 @@ object TargetRepository {
   }
 }
 
-class TargetRepository extends Actor with ActorLogging with ActorContextComponentImpl with ConfigContextComponentImpl with SlickContextComponentImpl {
-  import actorContext._
-  import slickContext._
+class TargetRepository(implicit val application: Application) extends Actor with ActorLogging {
+  import application.actorContext._
+  import application.slickContext._
 
   val Targets = TableQuery[TargetTable]
 

@@ -10,10 +10,14 @@ trait SlickContextComponent {
   }
 }
 
-trait SlickContextComponentImpl extends SlickContextComponent with ConfigContextComponent {
-  val slickContext: SlickContext = SlickContext
+trait DefaultSlickContextComponent extends SlickContextComponent {
+  self: ConfigContextComponent =>
 
-  object SlickContext extends super.SlickContext {
-    implicit val session: SlickSession = SlickSession.forConfig("slick-postgres", configContext.config)
+  override lazy val slickContext: SlickContext = new SlickContext
+
+  class SlickContext extends super.SlickContext {
+    import configContext._
+
+    implicit val session: SlickSession = SlickSession.forConfig("slick-postgres", config)
   }
 }

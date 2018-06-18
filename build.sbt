@@ -49,4 +49,4 @@ resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
 resolvers += "Java.net Maven2 Repository" at "https://download.java.net/maven/2/"
 resolvers += "Maven Central" at "https://repo.maven.apache.org/maven2"
 
-mainClass in Compile := Some("com.playground.Main")
+mainClass in Compile := Some("com.playground.Boot")
