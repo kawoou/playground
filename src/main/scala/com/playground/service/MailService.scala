@@ -20,7 +20,6 @@ object MailService {
 }
 
 class MailService(implicit val application: Application) extends Actor with ActorLogging {
-  // Public
   def receive = {
     /// Request
     case Command.Gets(page, count, ref) =>
